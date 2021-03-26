@@ -7,10 +7,21 @@
         <div class="w-100 text-center">
             <span>Signup</span>
         </div>
-        <form method="post" class="p-5"  action="{% url 'signup' %}" id="signup-form">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li {% if message.tags %} class="alert alert-danger alert-dismissible fade show {{ message.tags }}"
+                role="alert" {% endif %}> {{ message }} </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <form method="post" class="p-2" action="{% url 'signup' %}" id="signup-form">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-secondary">Sign up</button>
+            <button type="submit" class="btn btn-primary btn-block">Sign up</button>
+            <div class="sign-up">
+                Have an account? <a href="{% url 'login' %}">Login</a>
+            </div>
         </form>
     </div>
 </div>

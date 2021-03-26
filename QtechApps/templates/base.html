@@ -21,8 +21,14 @@
 <body>
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Home</a>
-            <a class="ml-auto" href="#">Login</a>
+            <a class="navbar-brand" href="{% url 'home' %}">Home</a>
+            {% if user.is_authenticated %}
+            {{user.username}}
+            <a class="ml-auto" href="{% url 'logout' %}">Logout</a>
+            {% else %}
+            <a class="ml-auto" href="{% url 'login' %}">Login</a>
+            {% endif %}
+            
         </div>
     </nav>
     {% block container %}

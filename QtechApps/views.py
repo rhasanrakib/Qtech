@@ -1,7 +1,12 @@
 from django.shortcuts import render,redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate,logout
+from django.contrib.auth.decorators import login_required
 from . forms import SignUpForm
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 
+#@login_required(login_url='login')
+@login_required
 def homeView(request):
     return render(request,'index.html')
 
@@ -15,6 +20,31 @@ def signupView(request):
             user = authenticate(username=username, password=raw_password)
             login(request, user)
             return redirect('home')
+        else:
+            messages.info(request, 'Failed Submission')
     else:
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
+
+@csrf_exempt
+def loginView(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+    else:
+        if request.method == 'POST':
+            email = request.POST['username']
+            password = request.POST['password']
+            
+            user = authenticate(request, email=email, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect("home")
+            else:
+                messages.info(request, 'Username OR password is incorrect')
+        context = {}
+        return render(request, 'login.html', context)
+
+def log_out(request):
+    logout(request)
+    #return redirect("posts:post_home")
+    return redirect("/")
