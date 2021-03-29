@@ -1,45 +1,78 @@
-span.helptext{
-    font-size: 12px;
-    color: red;
-}
-html,body { 
-	height: 100%; 
+a:hover, a:focus {
+	outline: none;
+	text-decoration: none;
 }
 
-.global-container{
-	height:100%;
+input:focus, textarea:focus {
+	outline: none !important;
+}
+
+input:focus, select:focus, textarea:focus, button:focus {
+	outline: none;
+}
+
+textarea:hover, input:hover, textarea:active, input:active, textarea:focus, input:focus, button:focus, button:active, button:hover, label:focus, .btn:active, .btn.active {
+	outline: 0px !important;
+	-webkit-appearance: none;
+	box-shadow: none !important;
+}
+
+span.helptext {
+	font-size: 12px;
+	color: red;
+}
+
+html, body {
+	height: 100%;
+}
+
+.global-container {
+	height: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background-color: #f5f5f5;
 }
 
-form{
+form {
 	padding-top: 10px;
 	font-size: 14px;
 	margin-top: 30px;
 }
 
-.card-title{ font-weight:300; }
+.card-title {
+	font-weight: 300;
+}
 
-.btn{
+.btn {
 	font-size: 14px;
-	margin-top:20px;
+	margin-top: 20px;
 }
 
-
-.login-form{ 
-	width:330px;
-	margin:20px;
+.login-form {
+	width: 330px;
+	margin: 20px;
 }
 
-.sign-up{
-	text-align:center;
-	padding:20px 0 0;
+.sign-up {
+	text-align: center;
+	padding: 20px 0 0;
 }
 
-.alert{
-	margin-bottom:-30px;
+.alert {
+	margin-bottom: -30px;
 	font-size: 13px;
-	margin-top:20px;
+	margin-top: 20px;
+}
+
+#right {
+	position: absolute;
+	width: 20%;
+	overflow-y: auto;
+	right: 0;
+}
+#left {
+	position: absolute;
+	overflow-y: auto;
+	width: 70%;
 }

@@ -4,13 +4,41 @@ from django.contrib.auth.decorators import login_required
 from . forms import SignUpForm
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+from . models import UserSearchHistory
+from django.contrib.auth.models import User
 
 # @login_required(login_url='login')
 
 
 @login_required
 def homeView(request):
-    return render(request, 'index.html')
+    context={}
+    list_user = User.objects.all()
+    context['users']=list_user
+    user = User.objects.get(id=request.user.id)
+    if 'search-box' in request.GET:
+        #Get the search box value
+        searchString = request.GET['search-box']
+        
+        #Split the string into words
+        keyWords= searchString.split()
+        
+        #add string to the template search box and line
+        context['searched_key']=searchString
+
+        #add those words to the template
+        context['keyWords']=keyWords
+
+        #Lower case the string so that we can search
+        searchString = searchString.lower()
+        
+        #Save string in database
+        history = UserSearchHistory(searchKeyWords=searchString,owner=user)
+        history.save()
+    else:
+        searchString=False
+    print(context)
+    return render(request, 'index.html',context)
 
 
 def signupView(request):
