@@ -30,15 +30,15 @@
             <div class="my-3">
                 Search Results
             </div>
+            {% for i in showData %}
             <div class="card mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This is a wider card with supporting text below as a natural lead-in to
-                        additional
-                        content. This content is a little bit longer.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    <p class="card-text">{{i.searchKeyWords}}</p>
+                    <p class="card-text"><small class="text-muted">Time: {{i.createdTime}}</small></p>
+                    <p class="card-text"><small class="text-muted">User: {{i.owner}}</small></p>
                 </div>
             </div>
+            {% endfor %}
         </div>
         <!--Filter Section-->
 
@@ -49,12 +49,12 @@
             </div>
             <div class="card p-3 mb-2">
                 <h5 class="card-title">All Keywords:</h5>
-                {% for i in keyWords %}
+                {% for key,value in keyWords.items %}
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="{{i}}" id="{{i.username}}"
+                    <input class="form-check-input" type="checkbox" value="{{key}}" id="{{key}}"
                         onclick="myFunction()">
-                    <label class="form-check-label" for="{{i}}">
-                        {{i}}
+                    <label class="form-check-label" for="{{key}}">
+                        {{key}}({{value}})
                     </label>
                 </div>
                 {% endfor %}

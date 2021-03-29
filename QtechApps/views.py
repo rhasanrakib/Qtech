@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from . models import UserSearchHistory
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 # @login_required(login_url='login')
 
@@ -21,23 +22,43 @@ def homeView(request):
         searchString = request.GET['search-box']
         
         #Split the string into words
-        keyWords= searchString.split()
+        keyWords= searchString.lower().split()
         
+        #Remove Duplicate Keywords
+        for i in range(0,len(keyWords)-1):
+            for j in range(i+1,len(keyWords)):
+                if keyWords[i]==keyWords[j]:
+                    keyWords.pop(j)
+
         #add string to the template search box and line
         context['searched_key']=searchString
 
         #add those words to the template
-        context['keyWords']=keyWords
+        #context['keyWords']=keyWords
 
         #Lower case the string so that we can search
         searchString = searchString.lower()
         
+        #Filter matched data to show
+        query = Q()
+        wordCounts=Q()
+        for words in keyWords:
+            query = query | Q(searchKeyWords__contains=words)
+        showData = UserSearchHistory.objects.filter(query).order_by('-createdTime')
+        context['showData']=showData
+
+        #Count the number of occurences of keywords in a dictionary
+        keyWordsCount={}
+        for i in keyWords:
+            keyWordsCount[i]=UserSearchHistory.objects.filter(searchKeyWords__contains=i).count()
+        context['keyWords']=keyWordsCount
         #Save string in database
         history = UserSearchHistory(searchKeyWords=searchString,owner=user)
         history.save()
+
     else:
         searchString=False
-    print(context)
+
     return render(request, 'index.html',context)
 
 
