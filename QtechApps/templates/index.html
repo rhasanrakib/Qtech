@@ -30,15 +30,17 @@
             <div class="my-3">
                 Search Results
             </div>
-            {% for i in showData %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <p class="card-text">{{i.searchKeyWords}}</p>
-                    <p class="card-text"><small class="text-muted">Time: {{i.createdTime}}</small></p>
-                    <p class="card-text"><small class="text-muted">User: {{i.owner}}</small></p>
+            <div id="search-result-response">
+                {% for i in showData %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="card-text">{{i.searchKeyWords}}</p>
+                        <p class="card-text"><small class="text-muted">Time: {{i.createdTime}}</small></p>
+                        <p class="card-text"><small class="text-muted">User: {{i.owner}}</small></p>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
         <!--Filter Section-->
 
@@ -77,22 +79,22 @@
                 <h5 class="card-title">Time Range:</h5>
 
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="yesterday" id="yesterday"
-                        onclick="checkInputAction()">
+                    <input class="form-check-input" type="checkbox" role="radio" value="yesterday" id="yesterday"
+                        onclick="checkInputAction()" name="time">
                     <label class="form-check-label" for="yesterday">
                         See data from yesterday
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="last_week" id="last_week"
-                        onclick="checkInputAction()">
+                    <input class="form-check-input" type="checkbox" role="radio" value="last_week" id="last_week"
+                        onclick="checkInputAction()" name="time">
                     <label class="form-check-label" for="last_week">
                         See data from last week
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="last_month" id="last_month"
-                        onclick="checkInputAction()">
+                    <input class="form-check-input" type="checkbox" role="radio" value="last_month" id="last_month"
+                        onclick="checkInputAction()" name="time">
                     <label class="form-check-label" for="last_month">
                         see data from last month
                     </label>
@@ -105,11 +107,11 @@
             <div class="card p-3 mb-2" id="date">
                 <h5 class="card-title">Select Date:</h5>
                 <div class="form-floating mb-3">
-                    <input type="date" class="form-control" id="start-date" placeholder="start-date">
+                    <input type="date" class="form-control" id="start-date" placeholder="start-date" max="{{calenderMax}}" onchange="checkInputAction()">
                     <label for="start-date">Start Date</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="date" class="form-control" id="end-date" placeholder="end-date">
+                    <input type="date" class="form-control" id="end-date" placeholder="end-date" max="{{calenderMax}}" onchange="checkInputAction()">
                     <label for="end-date">end Date</label>
                 </div>
             </div>
@@ -125,11 +127,13 @@
             let getFilterKeyWords = document.getElementById("keywords").getElementsByTagName("input");
             let getFilterUsers = document.getElementById("users").getElementsByTagName("input");
             let getFilterTimeRange = document.getElementById("timerange").getElementsByTagName("input");
+            let getFilterDate = document.getElementById("date").getElementsByTagName("input");
 
             //let getCheck = getInputs.getElementsByClassName()
             let keyWords = new Array()
             let users = new Array()
             let timeRange = new Array()
+            let dates = new Array()
             for (let i = 0; i < getFilterKeyWords.length; i++) {
                 if (getFilterKeyWords[i].checked) {
                     keyWords.push(getFilterKeyWords[i].value)
@@ -145,24 +149,39 @@
                     timeRange.push(getFilterTimeRange[i].value)
                 }
             }
-            
-            let selectedData={
-                'keywords':keyWords,
-                'users':users,
-                'time':timeRange
+            dates.push(document.getElementById("start-date").value);
+            dates.push(document.getElementById("end-date").value);
+            console.log(dates);
+            let selectedData = {
+                'keywords': keyWords,
+                'users': users,
+                'time': timeRange,
+                'date':dates
             };
 
             $.ajax({
                 type: "POST",
                 url: "{% url 'home' %}",
                 dataType: 'json',
-                data:{
-                    'getSelectedData':JSON.stringify(selectedData),
+                data: {
+                    'getSelectedData': JSON.stringify(selectedData),
                 },
                 success: function (response) {
-                    //console.log($(response.context.campaign_title);
+                    var instance = JSON.parse(response["instance"]);
+                    //console.log(instance)
+                    let htmlShow = "";
+                    for (i = 0; i < instance.length; i++) {
+                        htmlShow += 
+                        `<div class="card mb-3">
+                            <div class="card-body">
+                                <p class="card-text">`+instance[i].fields.searchKeyWords+`</p>
+                                <p class="card-text"><small class="text-muted">Time: `+instance[i].fields.createdTime+`</small></p>
+                                <p class="card-text"><small class="text-muted">User: `+instance[i].fields.owner+`</small></p>
+                            </div>
+                        </div>`
+                    }
+                    document.getElementById("search-result-response").innerHTML = htmlShow
 
-                    
                 }
             });
         }

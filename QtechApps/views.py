@@ -8,17 +8,26 @@ from . models import UserSearchHistory
 from django.contrib.auth.models import User
 from django.db.models import Q
 import json
-# @login_required(login_url='login')
+from django.http import JsonResponse
+from django.core import serializers
+from django.utils import timezone
+from datetime import date, timedelta
+
 
 
 @login_required
 @csrf_exempt
 def homeView(request):
     context = {}
-    list_user = User.objects.all()
-    context['users'] = list_user
     user = User.objects.get(id=request.user.id)
+    calenderMax = date.today().strftime("%Y-%m-%d")
     if 'search-box' in request.GET:
+
+        
+        context['calenderMax']=calenderMax
+        list_user = User.objects.all()
+        context['users'] = list_user
+
         # Get the search box value
         searchString = request.GET['search-box']
 
@@ -39,7 +48,6 @@ def homeView(request):
 
         # Filter matched data to show
         query = Q()
-        wordCounts = Q()
         for words in keyWords:
             query = query | Q(searchKeyWords__contains=words)
         showData = UserSearchHistory.objects.filter(
@@ -53,29 +61,59 @@ def homeView(request):
                 searchKeyWords__contains=i).count()
         # add those words to the template
         context['keyWords'] = keyWordsCount
-
         # Save string in database
-        history = UserSearchHistory(searchKeyWords=searchString, owner=user)
-        history.save()
-
+        history = UserSearchHistory.objects.create(
+            searchKeyWords=searchString, owner=user)
+        
     else:
         searchString = False
 
     if request.is_ajax and request.method == "POST":
-        getSelectedData=request.POST.getlist('getSelectedData', request.POST.getlist('getSelectedData[]'))
-        print(getSelectedData)
-        '''
-        try:
-            
-            getKeywords =json.loads(request.POST.get("keywords"))
-            getUsers=json.loads(request.POST.get("users"))
-            getTime = json.loads(request.POST.get("time "))
-            print(getKeywords,getUsers,getTime)
-        except Exception as e:
-            print(e)    
-        '''        
-    return render(request, 'index.html',context)
+        context = {}
+        getSelectedData = request.POST.getlist(
+            'getSelectedData', request.POST.getlist('getSelectedData[]'))
+        for i in getSelectedData:
+            data = json.loads(i)
 
+        getKeywords = data['keywords']
+        getUsers = data['users']
+        getTime = data['time']
+        getDate = data['date']
+        if getDate[0] is "":
+            getDate[0]="2020-03-01"
+        if getDate[1] is "":
+            getDate[1]=calenderMax
+        #user = User.objects.get(id=request.user.id)
+        queryWords = Q()
+        for words in getKeywords:
+            queryWords = queryWords | Q(searchKeyWords__contains=words)
+        
+        queryUser= Q()
+        for user in getUsers:
+            queryUser = queryUser | Q(owner=User.objects.get(username=user))
+            #query = query | Q(owner=user)
+        
+        queryTime = Q()
+        today = timezone.now()
+        
+        for time in getTime:
+            if time is 'yesterday':
+                yesterday = today - timedelta(days=1)
+                queryTime = queryTime|Q(createdTime__date = yesterday)
+            elif time is 'last_week':
+                lastweek = today - timedelta(weeks=1)
+                queryTime = queryTime|Q(createdTime__week = lastweek)
+            elif time is 'last_month':
+                lastmonth = today - timedelta(days=30)
+                queryTime = queryTime|Q(createdTime__month = lastmonth)
+        queryTime = queryTime|Q(createdTime__range=[getDate[0], getDate[1]])
+
+        filterData = UserSearchHistory.objects.filter(queryUser & queryWords & queryTime)
+        
+        data = serializers.serialize('json',filterData)
+        return JsonResponse({'instance':data}, status=200,safe=False)
+
+    return render(request, 'index.html', context)
 
 def signupView(request):
     if request.method == 'POST':
