@@ -7,58 +7,73 @@ from django.views.decorators.csrf import csrf_exempt
 from . models import UserSearchHistory
 from django.contrib.auth.models import User
 from django.db.models import Q
-
+import json
 # @login_required(login_url='login')
 
 
 @login_required
+@csrf_exempt
 def homeView(request):
-    context={}
+    context = {}
     list_user = User.objects.all()
-    context['users']=list_user
+    context['users'] = list_user
     user = User.objects.get(id=request.user.id)
     if 'search-box' in request.GET:
-        #Get the search box value
+        # Get the search box value
         searchString = request.GET['search-box']
-        
-        #Split the string into words
-        keyWords= searchString.lower().split()
-        
-        #Remove Duplicate Keywords
-        for i in range(0,len(keyWords)-1):
-            for j in range(i+1,len(keyWords)):
-                if keyWords[i]==keyWords[j]:
+
+        # Split the string into words
+        keyWords = searchString.lower().split()
+
+        # Remove Duplicate Keywords
+        for i in range(0, len(keyWords)-1):
+            for j in range(i+1, len(keyWords)):
+                if keyWords[i] == keyWords[j]:
                     keyWords.pop(j)
 
-        #add string to the template search box and line
-        context['searched_key']=searchString
+        # add string to the template search box and line
+        context['searched_key'] = searchString
 
-        #Lower case the string so that we can search
+        # Lower case the string so that we can search
         searchString = searchString.lower()
-        
-        #Filter matched data to show
+
+        # Filter matched data to show
         query = Q()
-        wordCounts=Q()
+        wordCounts = Q()
         for words in keyWords:
             query = query | Q(searchKeyWords__contains=words)
-        showData = UserSearchHistory.objects.filter(query).order_by('-createdTime')
-        context['showData']=showData
+        showData = UserSearchHistory.objects.filter(
+            query).order_by('-createdTime')
+        context['showData'] = showData
 
-        #Count the number of occurences of keywords in a dictionary
-        keyWordsCount={}
+        # Count the number of occurences of keywords in a dictionary
+        keyWordsCount = {}
         for i in keyWords:
-            keyWordsCount[i]=UserSearchHistory.objects.filter(searchKeyWords__contains=i).count()
-        #add those words to the template
-        context['keyWords']=keyWordsCount
+            keyWordsCount[i] = UserSearchHistory.objects.filter(
+                searchKeyWords__contains=i).count()
+        # add those words to the template
+        context['keyWords'] = keyWordsCount
 
-
-        #Save string in database
-        history = UserSearchHistory(searchKeyWords=searchString,owner=user)
+        # Save string in database
+        history = UserSearchHistory(searchKeyWords=searchString, owner=user)
         history.save()
 
     else:
-        searchString=False
+        searchString = False
 
+    if request.is_ajax and request.method == "POST":
+        getSelectedData=request.POST.getlist('getSelectedData', request.POST.getlist('getSelectedData[]'))
+        print(getSelectedData)
+        '''
+        try:
+            
+            getKeywords =json.loads(request.POST.get("keywords"))
+            getUsers=json.loads(request.POST.get("users"))
+            getTime = json.loads(request.POST.get("time "))
+            print(getKeywords,getUsers,getTime)
+        except Exception as e:
+            print(e)    
+        '''        
     return render(request, 'index.html',context)
 
 
@@ -87,7 +102,7 @@ def loginView(request):
         if request.method == 'POST':
             username = request.POST['username']
             password = request.POST['password']
-            #mail = authenticate(request, email=email, password=password)
+            # mail = authenticate(request, email=email, password=password)
 
             user = authenticate(request, username=username, password=password)
             if user is not None:

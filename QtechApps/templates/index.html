@@ -47,7 +47,7 @@
             <div class="my-3">
                 Search Filters
             </div>
-            <div class="card p-3 mb-2">
+            <div class="card p-3 mb-2" id="keywords">
                 <h5 class="card-title">All Keywords:</h5>
                 {% for key,value in keyWords.items %}
                 <div class="form-check">
@@ -60,7 +60,7 @@
                 {% endfor %}
             </div>
             <!--Users Filter-->
-            <div class="card p-3 mb-2">
+            <div class="card p-3 mb-2" id="users">
                 <h5 class="card-title">All Users:</h5>
                 {% for i in users %}
                 <div class="form-check">
@@ -73,7 +73,7 @@
                 {% endfor %}
             </div>
             <!--Time Range Filter-->
-            <div class="card p-3 mb-2">
+            <div class="card p-3 mb-2" id="timerange">
                 <h5 class="card-title">Time Range:</h5>
 
                 <div class="form-check">
@@ -102,7 +102,7 @@
             <!--
                 Filter Date
             -->
-            <div class="card p-3 mb-2">
+            <div class="card p-3 mb-2" id="date">
                 <h5 class="card-title">Select Date:</h5>
                 <div class="form-floating mb-3">
                     <input type="date" class="form-control" id="start-date" placeholder="start-date">
@@ -122,18 +122,49 @@
 
     <script>
         function checkInputAction() {
-            let getFilterDiv=document.getElementById("filters");
-            let getInputs=getFilterDiv.getElementsByTagName("input");
-            //let getCheck = getInputs.getElementsByClassName()
+            let getFilterKeyWords = document.getElementById("keywords").getElementsByTagName("input");
+            let getFilterUsers = document.getElementById("users").getElementsByTagName("input");
+            let getFilterTimeRange = document.getElementById("timerange").getElementsByTagName("input");
 
-            for(let i=0;i<getInputs.length;i++)
-            {
-                if(getInputs[i].type.toLowerCase()=="checkbox" && getInputs[i].checked)
-                {
-                    console.log(getInputs[i].value)
+            //let getCheck = getInputs.getElementsByClassName()
+            let keyWords = new Array()
+            let users = new Array()
+            let timeRange = new Array()
+            for (let i = 0; i < getFilterKeyWords.length; i++) {
+                if (getFilterKeyWords[i].checked) {
+                    keyWords.push(getFilterKeyWords[i].value)
                 }
             }
-            console.log("===============")
+            for (let i = 0; i < getFilterUsers.length; i++) {
+                if (getFilterUsers[i].checked) {
+                    users.push(getFilterUsers[i].value)
+                }
+            }
+            for (let i = 0; i < getFilterTimeRange.length; i++) {
+                if (getFilterTimeRange[i].checked) {
+                    timeRange.push(getFilterTimeRange[i].value)
+                }
+            }
+            
+            let selectedData={
+                'keywords':keyWords,
+                'users':users,
+                'time':timeRange
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'home' %}",
+                dataType: 'json',
+                data:{
+                    'getSelectedData':JSON.stringify(selectedData),
+                },
+                success: function (response) {
+                    //console.log($(response.context.campaign_title);
+
+                    
+                }
+            });
         }
     </script>
 </div>
