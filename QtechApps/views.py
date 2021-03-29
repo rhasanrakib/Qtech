@@ -33,9 +33,6 @@ def homeView(request):
         #add string to the template search box and line
         context['searched_key']=searchString
 
-        #add those words to the template
-        #context['keyWords']=keyWords
-
         #Lower case the string so that we can search
         searchString = searchString.lower()
         
@@ -51,7 +48,10 @@ def homeView(request):
         keyWordsCount={}
         for i in keyWords:
             keyWordsCount[i]=UserSearchHistory.objects.filter(searchKeyWords__contains=i).count()
+        #add those words to the template
         context['keyWords']=keyWordsCount
+
+
         #Save string in database
         history = UserSearchHistory(searchKeyWords=searchString,owner=user)
         history.save()

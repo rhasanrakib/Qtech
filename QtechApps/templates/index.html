@@ -42,7 +42,7 @@
         </div>
         <!--Filter Section-->
 
-        <div class="col-sm-12 col-md-4 order-md-1 order-0" style="overflow-y: auto;max-height: 100vh;">
+        <div class="col-sm-12 col-md-4 order-md-1 order-0" style="overflow-y: auto;max-height: 100vh;" id="filters">
             <!--Keywords filter-->
             <div class="my-3">
                 Search Filters
@@ -52,7 +52,7 @@
                 {% for key,value in keyWords.items %}
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="{{key}}" id="{{key}}"
-                        onclick="myFunction()">
+                        onclick="checkInputAction()">
                     <label class="form-check-label" for="{{key}}">
                         {{key}}({{value}})
                     </label>
@@ -65,7 +65,7 @@
                 {% for i in users %}
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="{{i.username}}" id="{{i.username}}"
-                        onclick="myFunction()">
+                        onclick="checkInputAction()">
                     <label class="form-check-label" for="{{i.username}}">
                         {{i.username}}
                     </label>
@@ -78,21 +78,21 @@
 
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="yesterday" id="yesterday"
-                        onclick="myFunction()">
+                        onclick="checkInputAction()">
                     <label class="form-check-label" for="yesterday">
                         See data from yesterday
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="last_week" id="last_week"
-                        onclick="myFunction()">
+                        onclick="checkInputAction()">
                     <label class="form-check-label" for="last_week">
                         See data from last week
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="last_month" id="last_month"
-                        onclick="myFunction()">
+                        onclick="checkInputAction()">
                     <label class="form-check-label" for="last_month">
                         see data from last month
                     </label>
@@ -121,15 +121,19 @@
     {% endif %}
 
     <script>
-        function myFunction() {
-            // Get the checkbox
-            var checkBox = document.getElementById("myCheck");
-            // If the checkbox is checked, display the output text
-            if (checkBox.checked == true) {
-                console.log(checkBox.value)
-            } else {
-                console.log("None")
+        function checkInputAction() {
+            let getFilterDiv=document.getElementById("filters");
+            let getInputs=getFilterDiv.getElementsByTagName("input");
+            //let getCheck = getInputs.getElementsByClassName()
+
+            for(let i=0;i<getInputs.length;i++)
+            {
+                if(getInputs[i].type.toLowerCase()=="checkbox" && getInputs[i].checked)
+                {
+                    console.log(getInputs[i].value)
+                }
             }
+            console.log("===============")
         }
     </script>
 </div>
