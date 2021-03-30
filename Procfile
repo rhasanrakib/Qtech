@@ -1,0 +1,1 @@
+web: gunicorn QtechProject.wsgi --log-file -
