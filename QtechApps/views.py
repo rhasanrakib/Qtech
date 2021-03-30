@@ -14,22 +14,24 @@ from django.utils import timezone
 from datetime import date, timedelta
 
 
-
 @login_required
 @csrf_exempt
 def homeView(request):
     context = {}
     user = User.objects.get(id=request.user.id)
     calenderMax = date.today().strftime("%Y-%m-%d")
+    context['calenderMax'] = calenderMax
+    list_user = User.objects.all()
+    context['users'] = list_user
     if 'search-box' in request.GET:
-
-        
-        context['calenderMax']=calenderMax
-        list_user = User.objects.all()
-        context['users'] = list_user
 
         # Get the search box value
         searchString = request.GET['search-box']
+
+        if searchString is not "":
+            # Save string in database
+            history = UserSearchHistory.objects.create(
+                searchKeyWords=searchString, owner=user)
 
         # Split the string into words
         keyWords = searchString.lower().split()
@@ -61,59 +63,75 @@ def homeView(request):
                 searchKeyWords__contains=i).count()
         # add those words to the template
         context['keyWords'] = keyWordsCount
-        # Save string in database
-        history = UserSearchHistory.objects.create(
-            searchKeyWords=searchString, owner=user)
-        
+
     else:
         searchString = False
 
+    # Ajax Request
     if request.is_ajax and request.method == "POST":
         context = {}
+        # Receive the Ajax from getSelectedData dict key
         getSelectedData = request.POST.getlist(
             'getSelectedData', request.POST.getlist('getSelectedData[]'))
+
+        # loads the Json
         for i in getSelectedData:
             data = json.loads(i)
 
+        # Get The Value of these Items
         getKeywords = data['keywords']
         getUsers = data['users']
         getTime = data['time']
         getDate = data['date']
+
+        # If date is empty then select all the data
+
         if getDate[0] is "":
-            getDate[0]="2020-03-01"
+            getDate[0] = "2020-03-01"
         if getDate[1] is "":
-            getDate[1]=calenderMax
-        #user = User.objects.get(id=request.user.id)
+            getDate[1] = calenderMax
+        getDate[1]+=" 23:59:59"
+        # Keywords Query
         queryWords = Q()
         for words in getKeywords:
             queryWords = queryWords | Q(searchKeyWords__contains=words)
-        
-        queryUser= Q()
+
+        # Users Query
+        queryUser = Q()
+
         for user in getUsers:
             queryUser = queryUser | Q(owner=User.objects.get(username=user))
             #query = query | Q(owner=user)
-        
+        # Time Query
         queryTime = Q()
-        today = timezone.now()
-        
+        today = date.today()
+
         for time in getTime:
             if time is 'yesterday':
                 yesterday = today - timedelta(days=1)
-                queryTime = queryTime|Q(createdTime__date = yesterday)
+                queryTime = queryTime | Q(createdTime__date=yesterday)
             elif time is 'last_week':
                 lastweek = today - timedelta(weeks=1)
-                queryTime = queryTime|Q(createdTime__week = lastweek)
+                queryTime = queryTime | Q(createdTime__week=lastweek)
             elif time is 'last_month':
                 lastmonth = today - timedelta(days=30)
-                queryTime = queryTime|Q(createdTime__month = lastmonth)
-        queryTime = queryTime|Q(createdTime__range=[getDate[0], getDate[1]])
+                queryTime = queryTime | Q(createdTime__month=lastmonth)
 
-        filterData = UserSearchHistory.objects.filter(queryUser & queryWords & queryTime)
-        
-        data = serializers.serialize('json',filterData)
-        return JsonResponse({'instance':data}, status=200,safe=False)
+        # Date Query mixed with Time
+        queryTime = queryTime | Q(createdTime__range=[getDate[0], getDate[1]])
+
+        # Filter from all these queries
+        filterData = UserSearchHistory.objects.filter(
+            queryUser & queryWords & queryTime).order_by('-createdTime')
+
+        # Serialize data cause this is query not Dictionary
+        data = serializers.serialize('json', filterData)
+        lst_user=serializers.serialize('json', list_user)
+        # Return the Response to the templates
+        return JsonResponse({'instance': data,'user':lst_user}, status=200, safe=False)
 
     return render(request, 'index.html', context)
+
 
 def signupView(request):
     if request.method == 'POST':

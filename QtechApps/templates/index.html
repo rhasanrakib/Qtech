@@ -151,7 +151,7 @@
             }
             dates.push(document.getElementById("start-date").value);
             dates.push(document.getElementById("end-date").value);
-            console.log(dates);
+            
             let selectedData = {
                 'keywords': keyWords,
                 'users': users,
@@ -168,15 +168,19 @@
                 },
                 success: function (response) {
                     var instance = JSON.parse(response["instance"]);
-                    //console.log(instance)
+                    let lst_usr= JSON.parse(response["user"])
+                    /*for(i=0;i<lst_usr.length;i++)
+                    {
+                        console.log(lst_usr[i].fields.username)
+                    }*/
                     let htmlShow = "";
                     for (i = 0; i < instance.length; i++) {
                         htmlShow += 
                         `<div class="card mb-3">
                             <div class="card-body">
                                 <p class="card-text">`+instance[i].fields.searchKeyWords+`</p>
-                                <p class="card-text"><small class="text-muted">Time: `+instance[i].fields.createdTime+`</small></p>
-                                <p class="card-text"><small class="text-muted">User: `+instance[i].fields.owner+`</small></p>
+                                <p class="card-text"><small class="text-muted">Time: `+new Date(instance[i].fields.createdTime)+`</small></p>
+                                <p class="card-text"><small class="text-muted">User: `+lst_usr[instance[i].fields.owner-1].fields.username+`</small></p>
                             </div>
                         </div>`
                     }
